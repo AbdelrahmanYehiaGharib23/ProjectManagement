@@ -11,11 +11,17 @@ namespace Application.Features.Tasks.Queries
     : IRequestHandler<GetTaskByIdQuery, TaskDto>
     {
         private readonly IGenericRepository<Domain.Entities.Task> _taskRepository;
+        private readonly IGenericRepository<Domain.Entities.Project> _projectRepository;
+        private readonly ICurrentUserService _currentUser;
 
         public GetTaskByIdQueryHandler(
-            IGenericRepository<Domain.Entities.Task> taskRepository)
+            IGenericRepository<Domain.Entities.Task> taskRepository,
+            IGenericRepository<Domain.Entities.Project> projectRepository,
+            ICurrentUserService currentUser)
         {
             _taskRepository = taskRepository;
+            _projectRepository = projectRepository;
+            _currentUser = currentUser;
         }
 
         public async Task<TaskDto> Handle(
@@ -29,13 +35,17 @@ namespace Application.Features.Tasks.Queries
             if (task is null)
                 throw new KeyNotFoundException(
                     $"Task with id {request.Id} was not found.");
-
+            var project = await _projectRepository.GetByIdAsync(task.ProjectId, cancellationToken);
+            if (project is null)
+                throw new KeyNotFoundException("The task's project was not found.");
+            if (!_currentUser.IsAdmin && project?.OwnerId != _currentUser.UserId)
+                throw new UnauthorizedAccessException("You cannot access this task.");
             return new TaskDto
             {
                 Id = task.Id,
                 Title = task.Title,
                 Description = task.Description,
-                IsCompleted = task.IsCompleted,
+                Status = task.Status,
                 ProjectId = task.ProjectId,
                 CreatedAt = task.CreatedAt,
                 UpdatedAt = task.UpdatedAt

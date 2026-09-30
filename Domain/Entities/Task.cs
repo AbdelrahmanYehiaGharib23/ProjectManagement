@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using TaskStatusEnum = Domain.Entities.Enum.TaskStatus;
 
 namespace Domain.Entities
 {
-    public class Task:BaseEntity
+    public class Task : BaseEntity
     {
         public string Title { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;
 
-        public bool IsCompleted { get; set; }
+        public TaskStatusEnum Status { get; set; }
 
         public int ProjectId { get; set; }
 

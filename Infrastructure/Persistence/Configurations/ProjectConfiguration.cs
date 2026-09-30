@@ -4,6 +4,7 @@ using System.Text;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Infrastructure.Identity;
 
 namespace Infrastructure.Persistence.Configurations
 {
@@ -19,6 +20,12 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(p => p.Description)
                 .HasMaxLength(1000);
+
+            builder.Property(p => p.OwnerId).HasMaxLength(450);
+            builder.HasOne<ApplicationUser>()
+                .WithMany()
+                .HasForeignKey(p => p.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(p => p.Tasks)
                 .WithOne(t => t.Project)

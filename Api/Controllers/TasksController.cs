@@ -3,10 +3,12 @@ using Application.Features.Tasks.DTOs;
 using Application.Features.Tasks.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Api.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/[controller]")]
     public class TasksController : ControllerBase
     {
@@ -36,7 +38,23 @@ namespace Api.Controllers
             CancellationToken cancellationToken)
         {
             if (id != command.Id)
-                return BadRequest();
+                return BadRequest("Route id does not match command id.");
+
+            var result = await _sender.Send(
+                command,
+                cancellationToken);
+
+            return Ok(result);
+        }
+
+        [HttpPatch("{id:int}/status")]
+        public async Task<ActionResult<TaskDto>> UpdateStatus(
+            int id,
+            UpdateTaskStatusCommand command,
+            CancellationToken cancellationToken)
+        {
+            if (id != command.Id)
+                return BadRequest("Route id does not match command id.");
 
             var result = await _sender.Send(
                 command,

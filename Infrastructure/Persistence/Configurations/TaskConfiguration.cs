@@ -20,8 +20,8 @@ namespace Infrastructure.Persistence.Configurations
             builder.Property(t => t.Description)
                 .HasMaxLength(1000);
 
-            builder.Property(t => t.IsCompleted)
-                .IsRequired();
+            builder.Property(t => t.Status)
+                   .IsRequired();
 
             builder.HasOne(t => t.Project)
                 .WithMany(p => p.Tasks)

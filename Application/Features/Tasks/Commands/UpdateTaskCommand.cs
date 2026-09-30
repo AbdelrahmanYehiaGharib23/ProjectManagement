@@ -7,10 +7,9 @@ using MediatR;
 namespace Application.Features.Tasks.Commands
 {
     public record UpdateTaskCommand(
-     int Id,
-     string Title,
-     string Description,
-     int ProjectId,
-     bool IsCompleted
- ) : IRequest<TaskDto>;
+        int Id,
+        string Title,
+        string Description,
+        int ProjectId
+    ) : IRequest<TaskDto>;
 }

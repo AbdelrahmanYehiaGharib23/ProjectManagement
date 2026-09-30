@@ -1,26 +1,35 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Text;
+﻿using System.Reflection;
 using Domain.Entities;
+using Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Persistence.DbInitializer
 {
-    public class ApplicationDbContext:DbContext
+    public class ApplicationDbContext
+        : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):base(options)
+        public ApplicationDbContext(
+            DbContextOptions<ApplicationDbContext> options)
+            : base(options)
         {
-            
         }
+
         public DbSet<Project> Projects => Set<Project>();
+
         public DbSet<Domain.Entities.Task> Tasks => Set<Domain.Entities.Task>();
+
         public DbSet<Comment> Comments => Set<Comment>();
+        public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.ApplyConfigurationsFromAssembly(
+                Assembly.GetExecutingAssembly());
         }
+
         private void ApplyAuditInformation()
         {
             var entries = ChangeTracker.Entries<BaseEntity>();
@@ -36,7 +45,9 @@ namespace Infrastructure.Persistence.DbInitializer
                 else if (entry.State == EntityState.Modified)
                 {
                     entry.Entity.UpdatedAt = now;
-                    entry.Property(e => e.CreatedAt).IsModified = false;
+
+                    entry.Property(e => e.CreatedAt)
+                        .IsModified = false;
                 }
             }
         }
@@ -55,6 +66,5 @@ namespace Infrastructure.Persistence.DbInitializer
 
             return base.SaveChanges();
         }
-
     }
 }

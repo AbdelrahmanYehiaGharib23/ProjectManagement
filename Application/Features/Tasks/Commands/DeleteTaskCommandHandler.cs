@@ -10,13 +10,19 @@ namespace Application.Features.Tasks.Commands
     {
         private readonly IGenericRepository<Domain.Entities.Task> _taskRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IGenericRepository<Domain.Entities.Project> _projectRepository;
+        private readonly ICurrentUserService _currentUser;
 
         public DeleteTaskCommandHandler(
             IGenericRepository<Domain.Entities.Task> taskRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            IGenericRepository<Domain.Entities.Project> projectRepository,
+            ICurrentUserService currentUser)
         {
             _taskRepository = taskRepository;
             _unitOfWork = unitOfWork;
+            _projectRepository = projectRepository;
+            _currentUser = currentUser;
         }
 
         public async Task<Unit> Handle(
@@ -31,7 +37,15 @@ namespace Application.Features.Tasks.Commands
                 throw new KeyNotFoundException(
                     $"Task with id {request.Id} was not found.");
 
-            _taskRepository.Remove(task);
+            var project = await _projectRepository.GetByIdAsync(task.ProjectId, cancellationToken);
+            if (project is null)
+                throw new KeyNotFoundException("The task's project was not found.");
+            if (!_currentUser.IsAdmin && project?.OwnerId != _currentUser.UserId)
+                throw new UnauthorizedAccessException("You cannot modify this task.");
+
+            task.IsDeleted = true;
+
+            _taskRepository.Update(task);
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 

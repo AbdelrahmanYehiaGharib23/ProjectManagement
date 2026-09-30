@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
-using System.Text;
+﻿using System.Linq.Expressions;
 using Application.Common.Interfaces;
 using Domain.Entities;
 using Infrastructure.Persistence.DbInitializer;
@@ -24,7 +21,7 @@ namespace Infrastructure.Repositories
             CancellationToken cancellationToken = default)
         {
             return await _dbContext.Set<TEntity>()
-                .FindAsync(new object[] { id }, cancellationToken);
+                .FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
         }
 
         public void Add(TEntity entity)

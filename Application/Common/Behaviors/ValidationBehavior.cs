@@ -10,8 +10,7 @@ namespace Application.Common.Behaviors
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
 
-        public ValidationBehavior(
-            IEnumerable<IValidator<TRequest>> validators)
+        public ValidationBehavior( IEnumerable<IValidator<TRequest>> validators)
         {
             _validators = validators;
         }

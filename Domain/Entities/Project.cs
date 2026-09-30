@@ -10,6 +10,8 @@ namespace Domain.Entities
 
         public string Description { get; set; } = string.Empty;
 
+        public string? OwnerId { get; set; }
+
         public ICollection<Task> Tasks { get; set; } = new List<Task>();
     }
 }

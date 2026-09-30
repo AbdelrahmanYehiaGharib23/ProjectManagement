@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using TaskStatusEnum = Domain.Entities.Enum.TaskStatus;
 
 namespace Application.Features.Tasks.DTOs
 {
@@ -12,7 +10,7 @@ namespace Application.Features.Tasks.DTOs
 
         public string Description { get; set; } = string.Empty;
 
-        public bool IsCompleted { get; set; }
+        public TaskStatusEnum Status { get; set; }
 
         public int ProjectId { get; set; }
 

@@ -1,5 +1,6 @@
 bin/
-obj/o
+obj/
+.build-output/
 .vs/
 *.user
 *.suo

@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Persistence.Configurations
 {
-    public class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguration<TEntity> where TEntity : BaseEntity
+    public class BaseEntityConfiguration<TEntity> : IEntityTypeConfiguration<TEntity>
+        where TEntity : BaseEntity
     {
         public virtual void Configure(EntityTypeBuilder<TEntity> builder)
         {
@@ -18,6 +16,11 @@ namespace Infrastructure.Persistence.Configurations
 
             builder.Property(e => e.UpdatedAt)
                 .IsRequired();
+
+            builder.Property(e => e.IsDeleted)
+                .IsRequired();
+
+            builder.HasQueryFilter(e => !e.IsDeleted);
         }
     }
 }

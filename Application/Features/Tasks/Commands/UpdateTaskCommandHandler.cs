@@ -1,24 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Application.Common.Interfaces;
+﻿using Application.Common.Interfaces;
 using Application.Features.Tasks.DTOs;
+using Domain.Entities;
 using MediatR;
 
 namespace Application.Features.Tasks.Commands
 {
-    public class UpdateTaskCommandHandler
-    : IRequestHandler<UpdateTaskCommand, TaskDto>
+    public class UpdateTaskCommandHandler : IRequestHandler<UpdateTaskCommand, TaskDto>
     {
         private readonly IGenericRepository<Domain.Entities.Task> _taskRepository;
+        private readonly IGenericRepository<Project> _projectRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
 
         public UpdateTaskCommandHandler(
             IGenericRepository<Domain.Entities.Task> taskRepository,
-            IUnitOfWork unitOfWork)
+            IGenericRepository<Project> projectRepository,
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUser)
         {
             _taskRepository = taskRepository;
+            _projectRepository = projectRepository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
         }
 
         public async Task<TaskDto> Handle(
@@ -33,10 +36,26 @@ namespace Application.Features.Tasks.Commands
                 throw new KeyNotFoundException(
                     $"Task with id {request.Id} was not found.");
 
+            var currentProject = await _projectRepository.GetByIdAsync(task.ProjectId, cancellationToken);
+            if (currentProject is null)
+                throw new KeyNotFoundException("The task's project was not found.");
+            if (!_currentUser.IsAdmin && currentProject?.OwnerId != _currentUser.UserId)
+                throw new UnauthorizedAccessException("You cannot modify this task.");
+
+            var project = await _projectRepository.GetByIdAsync(
+                request.ProjectId,
+                cancellationToken);
+
+            if (project is null)
+                throw new KeyNotFoundException(
+                    $"Project with id {request.ProjectId} was not found.");
+
+            if (!_currentUser.IsAdmin && project.OwnerId != _currentUser.UserId)
+                throw new UnauthorizedAccessException("You cannot move tasks into this project.");
+
             task.Title = request.Title;
             task.Description = request.Description;
             task.ProjectId = request.ProjectId;
-            task.IsCompleted = request.IsCompleted;
 
             _taskRepository.Update(task);
 
@@ -47,11 +66,12 @@ namespace Application.Features.Tasks.Commands
                 Id = task.Id,
                 Title = task.Title,
                 Description = task.Description,
-                IsCompleted = task.IsCompleted,
+                Status = task.Status,
                 ProjectId = task.ProjectId,
                 CreatedAt = task.CreatedAt,
                 UpdatedAt = task.UpdatedAt
             };
         }
     }
+
 }

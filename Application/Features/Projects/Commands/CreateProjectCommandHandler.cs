@@ -12,13 +12,16 @@ namespace Application.Features.Projects.Commands
     {
         private readonly IGenericRepository<Domain.Entities.Project> _projectRepository;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUser;
 
         public CreateProjectCommandHandler(
             IGenericRepository<Domain.Entities.Project> projectRepository,
-            IUnitOfWork unitOfWork)
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUser)
         {
             _projectRepository = projectRepository;
             _unitOfWork = unitOfWork;
+            _currentUser = currentUser;
         }
 
         public async Task<ProjectDto> Handle(
@@ -28,7 +31,8 @@ namespace Application.Features.Projects.Commands
             var project = new Domain.Entities.Project
             {
                 Name = request.Name,
-                Description = request.Description
+                Description = request.Description,
+                OwnerId = _currentUser.UserId ?? throw new UnauthorizedAccessException()
             };
 
             _projectRepository.Add(project);
